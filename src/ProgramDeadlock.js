@@ -1,41 +1,29 @@
 import React, { Component } from "react";
 import Button from "@material-ui/core/Button";
-import Resource from "./Resource";
+import ResourceDeadlock from "./ResourceDeadlock";
 import ProcessTable from "./ProcessTable";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 
-class Program extends Component {
+class ProgramDeadlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
       processors: [
         {
-          priority: 18,
-          process: "MP",
-          burstTime: 10,
+          priority: 1,
+          process: "P1",
+          semName: "sem1",
+          semaphore: 1,
           active: false,
-          main: true
+          main: false
         },
         {
           priority: 2,
-          process: "db",
-          burstTime: 10,
-          active: false,
-          main: false
-        },
-        {
-          priority: 0,
-          process: "de",
-          burstTime: 10,
-          active: false,
-          main: false
-        },
-        {
-          priority: 8,
-          process: "1a",
-          burstTime: 10,
+          process: "P2",
+          semName: "sem2",
+          semaphore: 1,
           active: false,
           main: false
         }
@@ -127,35 +115,17 @@ class Program extends Component {
       <div className="Program">
         <h1>Que List</h1>
         <ProcessTable
-          middle={"Burst Time"}
+          middle={"Semaphores"}
           processors={this.state.processors}
         />
         <br />
-        <div className="checkbox_form">
-          <FormGroup row>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={this.state.aging}
-                  onClick={this.handleInputChange}
-                  name="aging"
-                />
-              }
-              label="Deploy Aging"
-            />
-          </FormGroup>
-        </div>
         <h4>Order By Priority</h4>
-        <Resource processors={this.state.processors} />
+        <ResourceDeadlock processors={this.state.processors} />
         <Button
           onClick={this.activateProcessor}
           variant="contained"
           color="primary"
-          style={{
-            marginRight: "5px",
-            marginTop: "20px",
-            marginBottom: "80px"
-          }}
+          style={{ marginRight: "5px" }}
         >
           {this.state.buttonText}
         </Button>
@@ -163,7 +133,7 @@ class Program extends Component {
           onClick={this.newProcess}
           variant="contained"
           color="secondary"
-          style={{ marginLeft: "5px", marginTop: "20px", marginBottom: "80px" }}
+          style={{ marginLeft: "5px" }}
         >
           New Process
         </Button>
@@ -174,4 +144,4 @@ class Program extends Component {
   }
 }
 
-export default Program;
+export default ProgramDeadlock;

@@ -42,7 +42,9 @@ export default class Tables extends Component {
           <TableHead>
             <TableRow>
               <StyledTableCell>Process</StyledTableCell>
-              <StyledTableCell align="center">Burst Time</StyledTableCell>
+              <StyledTableCell align="center">
+                {this.props.middle}
+              </StyledTableCell>
               <StyledTableCell align="right">Priority&nbsp;(p)</StyledTableCell>
             </TableRow>
           </TableHead>
@@ -52,7 +54,19 @@ export default class Tables extends Component {
                 <StyledTableCell component="th" scope="row">
                   {p.process}
                 </StyledTableCell>
-                <StyledTableCell align="center">{p.burstTime}</StyledTableCell>
+
+                {!p.semaphore ? (
+                  <StyledTableCell align="center">
+                    {p.burstTime}
+                  </StyledTableCell>
+                ) : (
+                  <StyledTableCell align="center">
+                    {p.semaphore}
+                  </StyledTableCell>
+                )}
+
+                {/* <StyledTableCell align="center">{p.burstTime}</StyledTableCell> */}
+
                 <StyledTableCell align="right">{p.priority}</StyledTableCell>
               </StyledTableRow>
             ))}

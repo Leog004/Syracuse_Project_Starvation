@@ -11,10 +11,13 @@ class Processer extends Component {
   render() {
     //var BG = this.props.isActive ? "green" : "unset";
     var BG = this.getBackground();
+    var sem =
+      this.props.semCount && `${this.props.semName}: ${this.props.semCount}`;
     return (
       <div style={{ background: BG }} className="Processer">
         <h1>{this.props.process}</h1>
         <p>{this.props.priority}</p>
+        <p>{sem}</p>
         <p>{this.props.main}</p>
       </div>
     );
