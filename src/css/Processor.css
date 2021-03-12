@@ -1,0 +1,6 @@
+.Processer {
+  flex-grow: 4; /* default 0 */
+  border: 1px solid;
+  margin: 0 5px;
+  background: unset;
+}

@@ -1,0 +1,13 @@
+.resource {
+  background: #eee;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.container {
+  display: flex; /* or inline-flex */
+}
+
+.item {
+  flex-grow: 4; /* default 0 */
+}
