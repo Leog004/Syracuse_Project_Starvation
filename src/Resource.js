@@ -39,6 +39,7 @@ class Resource extends Component {
               key={p.process}
               process={p.process}
               priority={p.priority}
+              main={p.main}
             />
           ))}
         </div>

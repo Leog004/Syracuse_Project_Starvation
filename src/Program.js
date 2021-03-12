@@ -2,20 +2,50 @@ import React, { Component } from "react";
 import Button from "@material-ui/core/Button";
 import Resource from "./Resource";
 import ProcessTable from "./ProcessTable";
+import FormGroup from "@material-ui/core/FormGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 class Program extends Component {
   constructor(props) {
     super(props);
     this.state = {
       processors: [
-        { priority: 18, process: "MP", burstTime: 10, active: false },
-        { priority: 2, process: "db", burstTime: 10, active: false },
-        { priority: 0, process: "de", burstTime: 10, active: false },
-        { priority: 8, process: "1a", burstTime: 10, active: false }
+        {
+          priority: 18,
+          process: "MP",
+          burstTime: 10,
+          active: false,
+          main: true
+        },
+        {
+          priority: 2,
+          process: "db",
+          burstTime: 10,
+          active: false,
+          main: false
+        },
+        {
+          priority: 0,
+          process: "de",
+          burstTime: 10,
+          active: false,
+          main: false
+        },
+        {
+          priority: 8,
+          process: "1a",
+          burstTime: 10,
+          active: false,
+          main: false
+        }
       ],
-      buttonText: "Start"
+      buttonText: "Start",
+      btnCounter: 0,
+      aging: false
     };
 
+    this.handleInputChange = this.handleInputChange.bind(this);
     this.activateProcessor = this.activateProcessor.bind(this);
     this.newProcess = this.newProcess.bind(this);
   }
@@ -23,24 +53,45 @@ class Program extends Component {
   activateProcessor(e) {
     e.preventDefault();
 
-    this.setState({ buttonText: "Continue" });
+    this.setState({
+      buttonText: "Continue",
+      btnCounter: this.state.btnCounter + 1
+    });
 
     var counter = 0;
     var proc = [...this.state.processors];
 
-    var low = proc[0].priority;
+    var low = 21; // setting the lowest priority
+
     var lowIndex = 0;
+    var mIndex = 0;
 
     for (var x = 0; x < proc.length; x++) {
       if (proc[x].priority < low && proc[x].active !== true) {
         low = proc[x].priority;
         lowIndex = x;
       }
+
+      // if (proc[x].priority === low && proc[x].active !== true) {
+      //   low = proc[x].priority;
+      //   lowIndex = x;
+      // }
+
+      if (proc[x].aging) {
+        mIndex = x;
+      }
     }
 
     let ids = [...this.state.processors]; // create the copy of state array
     ids[lowIndex].active = true; //new value
+
+    if (this.state.aging && this.state.btnCounter % 2 === 0) {
+      ids[mIndex].priority -= 1;
+    }
+
     this.setState({ processors: ids });
+
+    // if (this.state.aging) alert("Aging has been selected");
   }
 
   newProcess(e) {
@@ -51,12 +102,24 @@ class Program extends Component {
     var newP = {
       priority: randomNumber,
       process: `${randomCharacter}${randomNumber}`,
-      burstTime: 10
+      burstTime: 10,
+      active: false,
+      main: false
     };
 
     this.setState((previousState) => ({
       processors: [...previousState.processors, newP]
     }));
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
   }
 
   render() {
@@ -65,6 +128,20 @@ class Program extends Component {
         <h1>Que List</h1>
         <ProcessTable processors={this.state.processors} />
         <br />
+        <div className="checkbox_form">
+          <FormGroup row>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.aging}
+                  onClick={this.handleInputChange}
+                  name="aging"
+                />
+              }
+              label="Deploy Aging"
+            />
+          </FormGroup>
+        </div>
         <h4>Order By Priority</h4>
         <Resource processors={this.state.processors} />
         <Button
