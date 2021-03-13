@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Button from "@material-ui/core/Button";
 import ResourceDeadlock from "./ResourceDeadlock";
 import ProcessTable from "./ProcessTable";
+import Highlight from "react-highlight";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
@@ -30,7 +31,8 @@ class ProgramDeadlock extends Component {
       ],
       buttonText: "Start",
       btnCounter: 0,
-      aging: false
+      showBrokenCode: false,
+      showFixedCode: false
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -46,7 +48,6 @@ class ProgramDeadlock extends Component {
       btnCounter: this.state.btnCounter + 1
     });
 
-    var counter = 0;
     var proc = [...this.state.processors];
 
     var low = 21; // setting the lowest priority
@@ -58,15 +59,6 @@ class ProgramDeadlock extends Component {
       if (proc[x].priority < low && proc[x].active !== true) {
         low = proc[x].priority;
         lowIndex = x;
-      }
-
-      // if (proc[x].priority === low && proc[x].active !== true) {
-      //   low = proc[x].priority;
-      //   lowIndex = x;
-      // }
-
-      if (proc[x].aging) {
-        mIndex = x;
       }
     }
 
@@ -113,11 +105,159 @@ class ProgramDeadlock extends Component {
   render() {
     return (
       <div className="Program">
-        <h1>Que List</h1>
+        <h1>Queue List</h1>
         <ProcessTable
           middle={"Semaphores"}
           processors={this.state.processors}
         />
+        <br />
+        <div className="checkbox_form">
+          <FormGroup row>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.showBrokenCode}
+                  onClick={this.handleInputChange}
+                  name="showBrokenCode"
+                />
+              }
+              label="Show Deadlock Code"
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.showFixedCode}
+                  onClick={this.handleInputChange}
+                  name="showFixedCode"
+                />
+              }
+              label="Show Fixed Code"
+            />
+          </FormGroup>
+        </div>
+        {this.state.showBrokenCode && (
+          <Highlight language="c">{`/*  main.c  - main */
+ 
+ #include <xinu.h>
+ #include <stdio.h>
+  
+  
+ void m1(); void m2(); void m3();
+  
+ sid32 sem;
+  
+ pid32 m1pid, m2pid, m3pid;
+ int32 flag = 0;
+  
+ void main(void) {
+   sem = semcreate(0);
+  
+   m2pid = create(m2, 1024, 4, "m2", 0);
+   m1pid = create(m1, 1024, 6, "m1", 0);
+  
+  
+   resume(m1pid);
+   resume(m2pid);
+  
+   return OK;
+ }
+  
+  
+ void m1() {
+  
+   while (1) {
+  
+     if (flag != 0) break;
+  
+     kprintf("In Process 1");
+     wait(sem);
+  
+   }
+  
+   kprintf("Out of Process 1");
+ }
+  
+ void m2() {
+  
+   kprintf("In Process 2");
+   wait(sem); //Leaving this uncomment will cause a deadlock! Thus not allowing process m3 to run which in turn cause starvation
+  
+   m3pid = create(m3, 1024, 2, "m3", 0);
+   resume(m3pid);
+ }
+  
+ void m3() {
+  
+   ++flag;
+  
+   printf("NOW I AM RUNNING WHOOO!");
+   signal(sem);
+  
+ }`}</Highlight>
+        )}
+
+        {this.state.showFixedCode && (
+          <Highlight language="c">{`/*  main.c  - main */
+ 
+ #include <xinu.h>
+ #include <stdio.h>
+  
+  
+ void m1(); void m2(); void m3();
+  
+ sid32 sem;
+  
+ pid32 m1pid, m2pid, m3pid;
+ int32 flag = 0;
+  
+ void main(void) {
+   sem = semcreate(0);
+  
+   m2pid = create(m2, 1024, 4, "m2", 0);
+   m1pid = create(m1, 1024, 6, "m1", 0);
+  
+  
+   resume(m1pid);
+   resume(m2pid);
+  
+   return OK;
+ }
+  
+  
+ void m1() {
+  
+   while (1) {
+  
+     if (flag != 0) break;
+  
+     kprintf("In Process 1");
+     wait(sem);
+  
+   }
+  
+   kprintf("Out of Process 1");
+ }
+  
+ void m2() {
+  
+   kprintf("In Process 2");
+   //wait(sem); //Leaving this uncomment will cause a deadlock! Thus not allowing process m3 to run which in turn cause starvation
+  
+   m3pid = create(m3, 1024, 2, "m3", 0);
+   resume(m3pid);
+ }
+  
+ void m3() {
+  
+   ++flag;
+  
+   printf("NOW I AM RUNNING WHOOO!");
+   signal(sem);
+  
+ }`}</Highlight>
+        )}
+
         <br />
         <h4>Order By Priority</h4>
         <ResourceDeadlock processors={this.state.processors} />

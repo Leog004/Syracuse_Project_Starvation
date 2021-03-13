@@ -3,3 +3,7 @@
   text-align: center;
   overflow-x: hidden;
 }
+
+.hljs {
+  text-align: left;
+}
