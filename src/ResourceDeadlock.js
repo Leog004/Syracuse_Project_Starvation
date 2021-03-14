@@ -42,6 +42,8 @@ class ResourceDeadlock extends Component {
               main={p.main}
               semCount={p.semaphore}
               semName={p.semName}
+              isBlocked={p.blocked}
+              output={p.output}
             />
           ))}
         </div>

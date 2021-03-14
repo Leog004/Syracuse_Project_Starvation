@@ -3,8 +3,10 @@ import "./css/Processor.css";
 
 class Processer extends Component {
   getBackground() {
+    if (this.props.isBlocked) return "red";
     if (this.props.isActive) return "green";
     if (this.props.main) return "orange";
+
     return "unset";
   }
 
@@ -18,7 +20,7 @@ class Processer extends Component {
         <h1>{this.props.process}</h1>
         <p>{this.props.priority}</p>
         <p>{sem}</p>
-        <p>{this.props.main}</p>
+        <p>{this.props.output}</p>
       </div>
     );
   }

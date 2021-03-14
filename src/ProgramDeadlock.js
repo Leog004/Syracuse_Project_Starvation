@@ -13,31 +13,96 @@ class ProgramDeadlock extends Component {
     this.state = {
       processors: [
         {
-          priority: 1,
-          process: "P1",
+          priority: 4,
+          process: "M1",
           semName: "sem1",
+          output: "",
           semaphore: 1,
           active: false,
-          main: false
+          main: false,
+          blocked: false
         },
         {
-          priority: 2,
-          process: "P2",
+          priority: 4,
+          process: "M2",
           semName: "sem2",
-          semaphore: 1,
+          semaphore: 0,
           active: false,
-          main: false
+          output: "",
+          main: false,
+          blocked: false
         }
       ],
       buttonText: "Start",
+      buttonText2: "Start",
       btnCounter: 0,
       showBrokenCode: false,
-      showFixedCode: false
+      showFixedCode: false,
+      runFixedCode: false,
+      allowPass: false
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.activateProcessor = this.activateProcessor.bind(this);
+    this.activateProcessor2 = this.activateProcessor2.bind(this);
     this.newProcess = this.newProcess.bind(this);
+  }
+
+  runM1(proc) {
+    var localBtnText = "Blocked";
+
+    while (proc[0].semaphore >= 0) {
+      proc[0].semaphore -= 1;
+
+      if (proc[0].semaphore >= 0 || this.state.allowPass) {
+        proc[0].blocked = true;
+        proc[0].output += `Hello from process 1\n`;
+      }
+    }
+
+    if (this.state.runFixedCode) {
+      proc[1].semaphore += 1;
+      proc[1].blocked = false;
+      proc[1].active = false;
+      localBtnText = "Continue";
+    }
+
+    this.setState({
+      processors: proc,
+      buttonText: "Blocked",
+      buttonText2: localBtnText
+    });
+  }
+
+  runM2(proc) {
+    var localBtn1Text = "Blocked";
+
+    while (proc[1].semaphore >= 0) {
+      proc[1].semaphore -= 1;
+
+      if (proc[1].semaphore >= 0 || this.state.allowPass) {
+        proc[1].blocked = true;
+        proc[1].output += `Hello from process 1\n`;
+      }
+
+      if (proc[1].semaphore < 0) {
+        proc[1].blocked = true;
+      }
+    }
+
+    if (this.state.runFixedCode) {
+      proc[0].semaphore += 1;
+      proc[0].blocked = false;
+      proc[0].active = false;
+      localBtn1Text = "Continue";
+    }
+
+    this.setState({
+      processors: proc,
+      buttonText2: "Blocked",
+      buttonText: localBtn1Text,
+      allowPass: true
+    });
   }
 
   activateProcessor(e) {
@@ -48,28 +113,29 @@ class ProgramDeadlock extends Component {
       btnCounter: this.state.btnCounter + 1
     });
 
-    var proc = [...this.state.processors];
+    let proc = [...this.state.processors]; // create the copy of state array
+    proc[0].active = true;
 
-    var low = 21; // setting the lowest priority
+    this.setState({ processors: proc });
 
-    var lowIndex = 0;
-    var mIndex = 0;
+    setTimeout(() => this.runM1(proc), 1000);
 
-    for (var x = 0; x < proc.length; x++) {
-      if (proc[x].priority < low && proc[x].active !== true) {
-        low = proc[x].priority;
-        lowIndex = x;
-      }
-    }
+    // if (this.state.aging) alert("Aging has been selected");
+  }
 
-    let ids = [...this.state.processors]; // create the copy of state array
-    ids[lowIndex].active = true; //new value
+  activateProcessor2(e) {
+    e.preventDefault();
 
-    if (this.state.aging && this.state.btnCounter % 2 === 0) {
-      ids[mIndex].priority -= 1;
-    }
+    this.setState({
+      buttonText2: "Continue",
+      btnCounter: this.state.btnCounter + 1
+    });
 
-    this.setState({ processors: ids });
+    let proc = [...this.state.processors]; // create the copy of state array
+    proc[1].active = true;
+    this.setState({ processors: proc });
+
+    setTimeout(() => this.runM2(proc), 1000);
 
     // if (this.state.aging) alert("Aging has been selected");
   }
@@ -134,128 +200,130 @@ class ProgramDeadlock extends Component {
               }
               label="Show Fixed Code"
             />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.runFixedCode}
+                  onClick={this.handleInputChange}
+                  name="runFixedCode"
+                />
+              }
+              label="Run with Fixed Code"
+            />
           </FormGroup>
         </div>
         {this.state.showBrokenCode && (
-          <Highlight language="c">{`/*  main.c  - main */
- 
- #include <xinu.h>
- #include <stdio.h>
-  
-  
- void m1(); void m2(); void m3();
-  
- sid32 sem;
-  
- pid32 m1pid, m2pid, m3pid;
- int32 flag = 0;
-  
- void main(void) {
-   sem = semcreate(0);
-  
-   m2pid = create(m2, 1024, 4, "m2", 0);
-   m1pid = create(m1, 1024, 6, "m1", 0);
-  
-  
-   resume(m1pid);
-   resume(m2pid);
-  
-   return OK;
- }
-  
-  
- void m1() {
-  
-   while (1) {
-  
-     if (flag != 0) break;
-  
-     kprintf("In Process 1");
-     wait(sem);
-  
-   }
-  
-   kprintf("Out of Process 1");
- }
-  
- void m2() {
-  
-   kprintf("In Process 2");
-   wait(sem); //Leaving this uncomment will cause a deadlock! Thus not allowing process m3 to run which in turn cause starvation
-  
-   m3pid = create(m3, 1024, 2, "m3", 0);
-   resume(m3pid);
- }
-  
- void m3() {
-  
-   ++flag;
-  
-   printf("NOW I AM RUNNING WHOOO!");
-   signal(sem);
-  
- }`}</Highlight>
+          <Highlight language="c">{`/* /*  main.c  - main */
+
+          #include <xinu.h>
+          #include <stdio.h>
+          
+          
+          void m1(); void m2(); // Two processors
+          
+          sid32 sem1, sem2; // our global semaphore
+          
+          pid32 m1pid, m2pid; // our processID
+          
+          void main(void) {
+          
+            sem1 = semcreate(0); // initializing sem value to 0
+            sem2 = semcreate(1); // initializing sem value to 1
+          
+            m1pid = create(m1, 1024, 4, "m1", 0); // initializing m1pid 
+            m2pid = create(m2, 1024, 4, "m2", 0);// initializing m2pid 
+          
+            resume(m1pid); // resuming process m1
+            resume(m2pid); // resuming process m2
+            
+            
+            return OK;
+          }
+          
+          
+          void m1() {
+        
+          
+            while (1) {
+          
+              wait(sem2);
+          
+              kprintf("Hello from process1");
+          
+              //signal(sem1);
+            }
+          }
+          
+          void m2() {
+          
+            while (1) {
+          
+              wait(sem1); // un blocks
+          
+              kprintf("Hello from process2");
+          
+              signal(sem2);
+            }
+          }
+          
+          `}</Highlight>
         )}
 
         {this.state.showFixedCode && (
-          <Highlight language="c">{`/*  main.c  - main */
- 
- #include <xinu.h>
- #include <stdio.h>
-  
-  
- void m1(); void m2(); void m3();
-  
- sid32 sem;
-  
- pid32 m1pid, m2pid, m3pid;
- int32 flag = 0;
-  
- void main(void) {
-   sem = semcreate(0);
-  
-   m2pid = create(m2, 1024, 4, "m2", 0);
-   m1pid = create(m1, 1024, 6, "m1", 0);
-  
-  
-   resume(m1pid);
-   resume(m2pid);
-  
-   return OK;
- }
-  
-  
- void m1() {
-  
-   while (1) {
-  
-     if (flag != 0) break;
-  
-     kprintf("In Process 1");
-     wait(sem);
-  
-   }
-  
-   kprintf("Out of Process 1");
- }
-  
- void m2() {
-  
-   kprintf("In Process 2");
-   //wait(sem); //Leaving this uncomment will cause a deadlock! Thus not allowing process m3 to run which in turn cause starvation
-  
-   m3pid = create(m3, 1024, 2, "m3", 0);
-   resume(m3pid);
- }
-  
- void m3() {
-  
-   ++flag;
-  
-   printf("NOW I AM RUNNING WHOOO!");
-   signal(sem);
-  
- }`}</Highlight>
+          <Highlight language="c">{`/* /*  main.c  - main */
+
+          #include <xinu.h>
+          #include <stdio.h>
+          
+          
+          void m1(); void m2(); // Two processors
+          
+          sid32 sem1, sem2; // our global semaphore
+          
+          pid32 m1pid, m2pid; // our processID
+          
+          void main(void) {
+          
+            sem1 = semcreate(0); // initializing sem value to 0
+            sem2 = semcreate(1); // initializing sem value to 1
+          
+            m1pid = create(m1, 1024, 4, "m1", 0); // initializing m1pid 
+            m2pid = create(m2, 1024, 4, "m2", 0);// initializing m2pid 
+          
+            resume(m1pid); // resuming process m1
+            resume(m2pid); // resuming process m2
+            
+            
+            return OK;
+          }
+          
+          
+          void m1() {
+          
+            while (1) {
+          
+              wait(sem2);
+          
+              kprintf("Hello from process1");
+          
+              signal(sem1);
+            }
+          }
+          
+          void m2() {
+          
+            while (1) {
+          
+              wait(sem1);
+          
+              kprintf("Hello from process2");
+          
+              signal(sem2);
+            }
+          }
+          
+          `}</Highlight>
         )}
 
         <br />
@@ -265,20 +333,19 @@ class ProgramDeadlock extends Component {
           onClick={this.activateProcessor}
           variant="contained"
           color="primary"
-          style={{ marginRight: "5px" }}
+          style={{ marginLeft: "23%", float: "left" }}
         >
           {this.state.buttonText}
         </Button>
+
         <Button
-          onClick={this.newProcess}
+          onClick={this.activateProcessor2}
           variant="contained"
-          color="secondary"
-          style={{ marginLeft: "5px" }}
+          color="primary"
+          style={{ marginRight: "23%", float: "right" }}
         >
-          New Process
+          {this.state.buttonText2}
         </Button>
-        {/* <a onClick={this.newProcess}>Start</a>*/}
-        {/* <a onClick={this.newProcess}>New Process</a> */}
       </div>
     );
   }
