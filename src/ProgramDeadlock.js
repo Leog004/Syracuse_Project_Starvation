@@ -82,7 +82,7 @@ class ProgramDeadlock extends Component {
 
       if (proc[1].semaphore >= 0 || this.state.allowPass) {
         proc[1].blocked = true;
-        proc[1].output += `Hello from process 1\n`;
+        proc[1].output += `Hello from process 2\n`;
       }
 
       if (proc[1].semaphore < 0) {
