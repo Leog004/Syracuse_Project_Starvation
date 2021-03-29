@@ -125,7 +125,22 @@ class Program extends Component {
   render() {
     return (
       <div className="Program">
-        <h1>Que List</h1>
+        <Button
+          target="_blank"
+          href="https://www.geeksforgeeks.org/starvation-and-aging-in-operating-systems/"
+          variant="contained"
+          color="primary"
+          size="small"
+          style={{ marginTop: "25px" }}
+        >
+          What is starvation?
+        </Button>
+
+        <h1>
+          Que List
+          <span style={{ fontSize: "10px" }}>(Priority based scheduler)</span>
+        </h1>
+
         <ProcessTable
           middle={"Burst Time"}
           processors={this.state.processors}
@@ -144,6 +159,16 @@ class Program extends Component {
               label="Deploy Aging"
             />
           </FormGroup>
+          <Button
+            target="_blank"
+            href="https://www.youtube.com/watch?v=01DiVzZbRjY"
+            variant="contained"
+            color="primary"
+            size="small"
+            style={{ display: "block" }}
+          >
+            What is Aging?
+          </Button>
         </div>
         <h4>Order By Priority</h4>
         <Resource processors={this.state.processors} />

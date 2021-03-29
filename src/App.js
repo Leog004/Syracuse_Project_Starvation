@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
+import Button from "@material-ui/core/Button";
 import Program from "./Program";
 import ProgramDeadlock from "./ProgramDeadlock";
 import "./styles.css";
@@ -10,7 +11,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      starvation: false,
+      starvation: true,
       deadlock: false
     };
     this.handleInputChange = this.handleInputChange.bind(this);
